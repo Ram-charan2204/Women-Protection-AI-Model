@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live Threat Detection Through Gesture</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin-top: 50px;
+            background-color: #222;
+            color: white;
+        }
+        #message {
+            font-size: 24px;
+            color: red;
+            font-weight: bold;
+            transition: transform 0.5s ease-in-out;
+            margin-bottom: 20px;
+        }
+        .zoom-in {
+            transform: scale(1.2);
+        }
+        .zoom-out {
+            transform: scale(1);
+        }
+        #video-container {
+            position: relative;
+            display: inline-block;
+        }
+        #video {
+            border: 2px solid #333;
+            width: 640px;
+            height: 480px;
+        }
+        #counts {
+            font-size: 18px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Live Threat Detection Through Gesture</h1>
+    <div id="message">No Unusual activity seen</div>
+    
+    <div id="video-container">
+        <img src="/video_feed" id="video">
+    </div>
+
+    <div id="counts">
+        <p id="male-count">Male Count: 0</p>
+        <p id="female-count">Female Count: 0</p>
+    </div>
+
+    <script>
+        function updateCounts(maleCount, femaleCount) {
+            document.getElementById('male-count').innerText = 'Male Count: ' + maleCount;
+            document.getElementById('female-count').innerText = 'Female Count: ' + femaleCount;
+        }
+
+        function checkGesture() {
+            fetch('/alert')
+                .then(response => response.json())
+                .then(data => {
+                    const messageElement = document.getElementById('message');
+                    messageElement.innerText = data.message;
+
+                    // Update male and female counts
+                    updateCounts(data.male_count, data.female_count);
+                    
+                    // Trigger zoom-in and zoom-out transition for emergency message
+                    if (data.message !== "No Unusual activity seen") {
+                        messageElement.classList.add('zoom-in');
+                        setTimeout(() => {
+                            messageElement.classList.remove('zoom-in');
+                            messageElement.classList.add('zoom-out');
+                        }, 500);
+                    } else {
+                        messageElement.classList.remove('zoom-in', 'zoom-out');
+                    }
+                });
+        }
+
+        // Poll the server every 2 seconds to check for gesture detection and update the message
+        setInterval(checkGesture, 2000);
+    </script>
+</body>
+</html>
